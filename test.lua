@@ -1,6 +1,5 @@
 local laxjson = require "laxjson"
 
-local o = laxjson.new()
+local laxj = laxjson.new()
 
-o:free()
-
+laxj:free()

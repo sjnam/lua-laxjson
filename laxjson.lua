@@ -84,6 +84,7 @@ enum LaxJsonError lax_json_eof(struct LaxJsonContext *context);
 const char *lax_json_str_err(enum LaxJsonError err);
 ]]
 
+
 local laxjson = ffi_load "laxjson"
 
 local _M = {
@@ -94,8 +95,7 @@ local mt = { __index = _M }
 
 
 function _M.new ()
-    ctx = laxjson.lax_json_create();
-    return setmetatable({ ctx = ctx }, mt);
+    return setmetatable({ ctx = laxjson.lax_json_create() }, mt);
 end
 
 
