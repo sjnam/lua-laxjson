@@ -2,6 +2,9 @@ local ffi = require "ffi"
 
 local C = ffi.C
 local ffi_load = ffi.load
+local ffi_cast = ffi.cast
+local ffi_str = ffi.string
+local ffi_typeof = ffi.typeof
 local setmetatable = setmetatable
 
 
@@ -85,22 +88,119 @@ const char *lax_json_str_err(enum LaxJsonError err);
 ]]
 
 
+local string_type = "int (*)(struct LaxJsonContext *, enum LaxJsonType, const char *, int)"
+local number_type = "int (*)(struct LaxJsonContext *, double)"
+local other_type = "int (*)(struct LaxJsonContext *, enum LaxJsonType)"
+
+
+local function default_string (ctx, jtype, value, length)
+   local type_name = jtype == C.LaxJsonTypeProperty and "property" or "string"
+   print(type_name, ffi_str(value))
+   return C.LaxJsonErrorNone
+end
+
+
+local function default_number (ctx, x)
+   print(x)
+   return C.LaxJsonErrorNone
+end
+
+
+local function default_primitive (ctx, jtype)
+   local type_name
+   if jtype == C.LaxJsonTypeTrue then
+      type_name = "true"
+   elseif jtype == C.LaxJsonTypeFalse then
+      type_name = "false"
+   else
+      type_name = "null"
+   end
+   print("primitive: "..type_name)
+   return C.LaxJsonErrorNone
+end
+
+
+local function default_begin (ctx, jtype)
+   local type_name = jtype == C.LaxJsonTypeArray and "array" or "object"
+   print("begin "..type_name)
+   return C.LaxJsonErrorNone
+end
+
+
+local function default_end (ctx, jtype)
+   local type_name = jtype == C.LaxJsonTypeArray and "array" or "object"
+   print("end "..type_name)
+   return C.LaxJsonErrorNone
+end
+
+
 local laxjson = ffi_load "laxjson"
 
+
 local _M = {
-    version = "0.0.1"
+   version = "0.0.1"
 }
+
 
 local mt = { __index = _M }
 
 
-function _M.new ()
-    return setmetatable({ ctx = laxjson.lax_json_create() }, mt);
+function _M.new (o)
+   local o = o or {}
+   local ctx = laxjson.lax_json_create()
+
+   ctx[0].string = ffi_cast(string_type, o.fn_string or default_string)
+   ctx[0].number = ffi_cast(number_type, o.fn_number or default_number)
+   ctx[0].primitive = ffi_cast(other_type, o.fn_primitive or default_primitive)
+   ctx[0].begin = ffi_cast(other_type, o.fn_begin or default_begin)
+   ctx[0]["end"] = ffi_cast(other_type, o.fn_end or default_end)
+
+   return setmetatable({ ctx = ctx }, mt)
+end
+
+
+function _M:set_fn_string (fn)
+   self.ctx[0].string = ffi_cast(string_type, fn)
+end
+
+
+function _M:set_fn_number (fn)
+   self.ctx[0].number = ffi_cast(number_type, fn)
+end
+
+
+function _M:set_fn_primitive (fn)
+   self.ctx[0].primitive = ffi_cast(other_type, fn)
+end
+
+
+function _M:set_fn_begin (fn)
+   self.ctx[0].begin = ffi_cast(other_type, fn)
+end
+
+
+function _M:set_fn_end (fn)
+   self.ctx[0]["end"] = ffi_cast(other_type, fn)
+end
+
+
+function _M:feed (amt_read, buf)
+   return laxjson.lax_json_feed(self.ctx, amt_read, buf)
+end
+
+
+function _M:eof ()
+   return laxjson.lax_json_eof(self.ctx)
+end
+
+
+function _M:str_err (err)
+   return laxjson.lax_json_str_err(err)
 end
 
 
 function _M:free ()
-    laxjson.lax_json_destroy(self.ctx);
+   laxjson.lax_json_destroy(self.ctx);
 end
 
 
