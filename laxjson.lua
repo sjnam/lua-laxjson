@@ -5,6 +5,7 @@ local ffi_load = ffi.load
 local ffi_cast = ffi.cast
 local ffi_str = ffi.string
 local ffi_typeof = ffi.typeof
+local print = print
 local setmetatable = setmetatable
 
 
@@ -88,14 +89,14 @@ const char *lax_json_str_err(enum LaxJsonError err);
 ]]
 
 
-local string_type = "int (*)(struct LaxJsonContext *, enum LaxJsonType, const char *, int)"
-local number_type = "int (*)(struct LaxJsonContext *, double)"
-local other_type = "int (*)(struct LaxJsonContext *, enum LaxJsonType)"
+local string_t = ffi_typeof("int (*)(struct LaxJsonContext *, enum LaxJsonType, const char *, int)")
+local number_t = ffi_typeof("int (*)(struct LaxJsonContext *, double)")
+local other_t = ffi_typeof("int (*)(struct LaxJsonContext *, enum LaxJsonType)")
 
 
 local function default_string (ctx, jtype, value, length)
    local type_name = jtype == C.LaxJsonTypeProperty and "property" or "string"
-   print(type_name, ffi_str(value))
+   print(type_name..": "..ffi_str(value))
    return C.LaxJsonErrorNone
 end
 
@@ -149,38 +150,38 @@ function _M.new (o)
    local o = o or {}
    local ctx = laxjson.lax_json_create()
 
-   ctx[0].string = ffi_cast(string_type, o.fn_string or default_string)
-   ctx[0].number = ffi_cast(number_type, o.fn_number or default_number)
-   ctx[0].primitive = ffi_cast(other_type, o.fn_primitive or default_primitive)
-   ctx[0].begin = ffi_cast(other_type, o.fn_begin or default_begin)
-   ctx[0]["end"] = ffi_cast(other_type, o.fn_end or default_end)
+   ctx[0].string = ffi_cast(string_t, o.fn_string or default_string)
+   ctx[0].number = ffi_cast(number_t, o.fn_number or default_number)
+   ctx[0].primitive = ffi_cast(other_t, o.fn_primitive or default_primitive)
+   ctx[0].begin = ffi_cast(other_t, o.fn_begin or default_begin)
+   ctx[0]["end"] = ffi_cast(other_t, o.fn_end or default_end)
 
    return setmetatable({ ctx = ctx }, mt)
 end
 
 
 function _M:set_fn_string (fn)
-   self.ctx[0].string = ffi_cast(string_type, fn)
+   self.ctx[0].string = ffi_cast(string_t, fn)
 end
 
 
 function _M:set_fn_number (fn)
-   self.ctx[0].number = ffi_cast(number_type, fn)
+   self.ctx[0].number = ffi_cast(number_t, fn)
 end
 
 
 function _M:set_fn_primitive (fn)
-   self.ctx[0].primitive = ffi_cast(other_type, fn)
+   self.ctx[0].primitive = ffi_cast(other_t, fn)
 end
 
 
 function _M:set_fn_begin (fn)
-   self.ctx[0].begin = ffi_cast(other_type, fn)
+   self.ctx[0].begin = ffi_cast(other_t, fn)
 end
 
 
 function _M:set_fn_end (fn)
-   self.ctx[0]["end"] = ffi_cast(other_type, fn)
+   self.ctx[0]["end"] = ffi_cast(other_t, fn)
 end
 
 

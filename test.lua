@@ -4,14 +4,14 @@ local C = ffi.C
 local ffi_str = ffi.string
 local io_open = io.open
 
-local function sample_string (ctx, jtype, value, length)
-   local type_name = jtype == C.LaxJsonTypeProperty and "key" or "value"
-   print(type_name, ffi_str(value))
-   return C.LaxJsonErrorNone
-end
 
-
-local laxj = laxjson.new { fn_string = sample_string }
+local laxj = laxjson.new {
+   fn_string = function (ctx, jtype, value, length)
+      local type_name = jtype == C.LaxJsonTypeProperty and "key" or "value"
+      print(type_name..": "..ffi_str(value))
+      return C.LaxJsonErrorNone
+   end
+}
 
 local BUFSIZE = 1024
 local amt_read
