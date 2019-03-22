@@ -19,7 +19,7 @@ local C = ffi.C
 local ffi_str = ffi.string
 local io_open = io.open
 
--- If you don't declare callback function, default callbacks are used.
+-- If you don't declare callback functions, default callbacks are used.
 -- local laxj = laxjson.new()
 
 local laxj = laxjson.new {
