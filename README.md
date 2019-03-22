@@ -3,6 +3,9 @@ Name
 lua-laxjson - Lua bindings to [liblaxjson](https://github.com/andrewrk/liblaxjson)
 for LuaJIT using FFI.
 
+[liblaxjson](https://github.com/andrewrk/liblaxjson) is a relaxed streaming JSON parser
+C library. You don't have to buffer the entire JSON string in memory before parsing it.
+
 Status
 ======
 This library is still experimental and under early development.
