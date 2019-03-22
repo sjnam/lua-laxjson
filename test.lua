@@ -4,7 +4,8 @@ local C = ffi.C
 local ffi_str = ffi.string
 local io_open = io.open
 
-
+-- If you don't declare callback functions, default callbacks are used.
+-- local laxj = laxjson.new()
 local laxj = laxjson.new {
    fn_string = function (ctx, ltype, value, length)
       local type_name = ltype == C.LaxJsonTypeProperty and "primitive" or "string"
@@ -39,11 +40,10 @@ local laxj = laxjson.new {
    end
 }
 
-
 local amt_read
 local f = io_open("file.json", "r")
 while true do
-   local buf, rest = f:read(1024, "*line")
+   local buf = f:read(32)
    if not buf then break end
    amt_read = #buf
    local err = laxj:feed(amt_read, buf)
@@ -53,7 +53,6 @@ while true do
       laxj:free()
       return
    end
-   laxj:feed(amt_read, buf)
 end
 
 local err = laxj:eof()

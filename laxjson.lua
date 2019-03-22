@@ -5,6 +5,7 @@ local ffi_load = ffi.load
 local ffi_cast = ffi.cast
 local ffi_str = ffi.string
 local ffi_typeof = ffi.typeof
+local NULL = ffi.null
 local print = print
 local setmetatable = setmetatable
 
@@ -149,6 +150,7 @@ local mt = { __index = _M }
 function _M.new (o)
    local o = o or {}
    local ctx = laxjson.lax_json_create()
+   ctx[0].userdata = o.userdata or NULL
    ctx[0].string = ffi_cast(string_t, o.fn_string or default_string)
    ctx[0].number = ffi_cast(number_t, o.fn_number or default_number)
    ctx[0].primitive = ffi_cast(other_t, o.fn_primitive or default_primitive)
@@ -156,6 +158,11 @@ function _M.new (o)
    ctx[0]["end"] = ffi_cast(other_t, o.fn_end or default_end)
 
    return setmetatable({ ctx = ctx }, mt)
+end
+
+
+function _M:set_userdata (data)
+    self.ctx[0].userdata = ffi_cast("void *", data)
 end
 
 
