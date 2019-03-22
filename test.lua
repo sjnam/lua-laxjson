@@ -6,18 +6,44 @@ local io_open = io.open
 
 
 local laxj = laxjson.new {
-   fn_string = function (ctx, jtype, value, length)
-      local type_name = jtype == C.LaxJsonTypeProperty and "key" or "value"
+   fn_string = function (ctx, ltype, value, length)
+      local type_name = ltype == C.LaxJsonTypeProperty and "primitive" or "string"
       print(type_name..": "..ffi_str(value))
+      return C.LaxJsonErrorNone
+   end,
+   fn_number = function (ctx, x)
+      print(x)
+      return C.LaxJsonErrorNone
+   end,
+   fn_primitive = function (ctx, ltype)
+      local type_name
+      if ltype == C.LaxJsonTypeTrue then
+         type_name = "true"
+      elseif ltype == C.LaxJsonTypeFalse then
+         type_name = "false"
+      else
+         type_name = "null"
+      end
+      print("primitive: "..type_name)
+      return C.LaxJsonErrorNone
+   end,
+   fn_begin = function (ctx, ltype)
+      local type_name = ltype == C.LaxJsonTypeArray and "array" or "object"
+      print("begin "..type_name)
+      return C.LaxJsonErrorNone
+   end,
+   fn_end = function (ctx, ltype)
+      local type_name = ltype == C.LaxJsonTypeArray and "array" or "object"
+      print("end "..type_name)
       return C.LaxJsonErrorNone
    end
 }
 
-local BUFSIZE = 1024
+
 local amt_read
 local f = io_open("file.json", "r")
 while true do
-   local buf, rest = f:read(BUFSIZE)
+   local buf, rest = f:read(1024)
    if not buf then
       break
    end

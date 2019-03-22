@@ -16,20 +16,44 @@ local C = ffi.C
 local ffi_str = ffi.string
 local io_open = io.open
 
-
 local laxj = laxjson.new {
-   fn_string = function (ctx, jtype, value, length)
-      local type_name = jtype == C.LaxJsonTypeProperty and "key" or "value"
+   fn_string = function (ctx, ltype, value, length)
+      local type_name = ltype == C.LaxJsonTypeProperty and "primitive" or "string"
       print(type_name..": "..ffi_str(value))
+      return C.LaxJsonErrorNone
+   end,
+   fn_number = function (ctx, x)
+      print(x)
+      return C.LaxJsonErrorNone
+   end,
+   fn_primitive = function (ctx, ltype)
+      local type_name
+      if ltype == C.LaxJsonTypeTrue then
+         type_name = "true"
+      elseif ltype == C.LaxJsonTypeFalse then
+         type_name = "false"
+      else
+         type_name = "null"
+      end
+      print("primitive: "..type_name)
+      return C.LaxJsonErrorNone
+   end,
+   fn_begin = function (ctx, ltype)
+      local type_name = ltype == C.LaxJsonTypeArray and "array" or "object"
+      print("begin "..type_name)
+      return C.LaxJsonErrorNone
+   end,
+   fn_end = function (ctx, ltype)
+      local type_name = ltype == C.LaxJsonTypeArray and "array" or "object"
+      print("end "..type_name)
       return C.LaxJsonErrorNone
    end
 }
 
-local BUFSIZE = 1024
 local amt_read
 local f = io_open("file.json", "r")
 while true do
-   local buf, rest = f:read(BUFSIZE)
+   local buf = f:read(1024)
    if not buf then
       break
    end
@@ -65,31 +89,31 @@ new
 ---
 `syntax: laxj = laxjson.new(o)`
 
-Create cstream and dstream.
+Create laxjson context.
 
 free
 ----
 `syntax: laxj:free()`
 
-Free cstream and dstream.
+Destroy laxjson context.
 
 feed
 ----
 `syntax: laxj:feed()`
 
-feed
+Feed string to parse.
 
 eof
 ---
 `syntax: laxj:eof()`
 
-eof
+Check EOF.
 
 str_err
 -------
 `syntax: laxj:str_err(err)`
 
-str err
+Get error string.
 
 Author
 ======
