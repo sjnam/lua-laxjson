@@ -23,7 +23,7 @@ local io_open = io.open
 -- local laxj = laxjson.new()
 local laxj = laxjson.new {
    fn_string = function (ctx, ltype, value, length)
-      local type_name = ltype == C.LaxJsonTypeProperty and "primitive" or "string"
+      local type_name = ltype == C.LaxJsonTypeProperty and "property" or "string"
       print(type_name..": "..ffi_str(value))
       return C.LaxJsonErrorNone
    end,
