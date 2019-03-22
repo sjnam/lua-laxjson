@@ -30,7 +30,7 @@ end
 
 local laxj = laxjson.new {
     userdata = ffi.new("mydata_t[1]"),
-    fn_string = function (ctx, ltype, value, length)
+    on_string = function (ctx, ltype, value, length)
         if ltype == C.LaxJsonTypeProperty then
             if ffi_str(value) == "id" then
                 print("id found")
@@ -39,7 +39,7 @@ local laxj = laxjson.new {
         return 0
     end,
 
-    fn_begin = function (ctx, ltype)
+    on_begin = function (ctx, ltype)
         local data = mydata(ctx.userdata)
         if ltype == C.LaxJsonTypeArray then
             data.menu = 1
@@ -53,7 +53,7 @@ local laxj = laxjson.new {
     end
 }
 
-laxj:set_fn_end(on_end)
+laxj:set_on_end(on_end)
 
 local amt_read
 local f = io_open("menu.json", "r")

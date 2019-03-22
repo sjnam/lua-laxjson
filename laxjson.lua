@@ -151,11 +151,11 @@ function _M.new (o)
 
     local ctx = laxjson.lax_json_create()
     ctx.userdata = ffi_cast(void_t, o.userdata or NULL)
-    ctx.string = ffi_cast(string_t, o.fn_string or on_string)
-    ctx.number = ffi_cast(number_t, o.fn_number or on_number)
-    ctx.primitive = ffi_cast(other_t, o.fn_primitive or on_primitive)
-    ctx.begin = ffi_cast(other_t, o.fn_begin or on_begin)
-    ctx["end"] = ffi_cast(other_t, o.fn_end or on_end)
+    ctx.string = ffi_cast(string_t, o.on_string or on_string)
+    ctx.number = ffi_cast(number_t, o.on_number or on_number)
+    ctx.primitive = ffi_cast(other_t, o.on_primitive or on_primitive)
+    ctx.begin = ffi_cast(other_t, o.on_begin or on_begin)
+    ctx["end"] = ffi_cast(other_t, o.on_end or on_end)
 
     return setmetatable({ ctx = ctx, userdata = ctx.userdata }, mt)
 end
@@ -166,27 +166,27 @@ function _M:set_userdata (data)
 end
 
 
-function _M:set_fn_string (fn)
+function _M:set_on_string (fn)
     self.ctx.string = ffi_cast(string_t, fn)
 end
 
 
-function _M:set_fn_number (fn)
+function _M:set_on_number (fn)
     self.ctx.number = ffi_cast(number_t, fn)
 end
 
 
-function _M:set_fn_primitive (fn)
+function _M:set_on_primitive (fn)
     self.ctx.primitive = ffi_cast(other_t, fn)
 end
 
 
-function _M:set_fn_begin (fn)
+function _M:set_on_begin (fn)
     self.ctx.begin = ffi_cast(other_t, fn)
 end
 
 
-function _M:set_fn_end (fn)
+function _M:set_on_end (fn)
     self.ctx["end"] = ffi_cast(other_t, fn)
 end
 

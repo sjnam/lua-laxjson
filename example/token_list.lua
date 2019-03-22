@@ -7,16 +7,16 @@ local io_open = io.open
 -- If you don't declare callback functions, default callbacks are used.
 -- local laxj = laxjson.new()
 local laxj = laxjson.new {
-   fn_string = function (ctx, ltype, value, length)
+   on_string = function (ctx, ltype, value, length)
       local type_name = ltype == C.LaxJsonTypeProperty and "property" or "string"
       print(type_name..": "..ffi_str(value))
       return 0
    end,
-   fn_number = function (ctx, x)
+   on_number = function (ctx, x)
       print(x)
       return 0
    end,
-   fn_primitive = function (ctx, ltype)
+   on_primitive = function (ctx, ltype)
       local type_name
       if ltype == C.LaxJsonTypeTrue then
          type_name = "true"
@@ -28,12 +28,12 @@ local laxj = laxjson.new {
       print("primitive: "..type_name)
       return 0
    end,
-   fn_begin = function (ctx, ltype)
+   on_begin = function (ctx, ltype)
       local type_name = ltype == C.LaxJsonTypeArray and "array" or "object"
       print("begin "..type_name)
       return 0
    end,
-   fn_end = function (ctx, ltype)
+   on_end = function (ctx, ltype)
       local type_name = ltype == C.LaxJsonTypeArray and "array" or "object"
       print("end "..type_name)
       return 0
