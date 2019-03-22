@@ -149,7 +149,6 @@ local mt = { __index = _M }
 function _M.new (o)
    local o = o or {}
    local ctx = laxjson.lax_json_create()
-
    ctx[0].string = ffi_cast(string_t, o.fn_string or default_string)
    ctx[0].number = ffi_cast(number_t, o.fn_number or default_number)
    ctx[0].primitive = ffi_cast(other_t, o.fn_primitive or default_primitive)
@@ -186,17 +185,23 @@ end
 
 
 function _M:feed (amt_read, buf)
-   return laxjson.lax_json_feed(self.ctx, amt_read, buf)
+   local err = laxjson.lax_json_feed(self.ctx, amt_read, buf)
+   self.line = self.ctx[0].line
+   self.column = self.ctx[0].column
+   return err
 end
 
 
 function _M:eof ()
-   return laxjson.lax_json_eof(self.ctx)
+   local err = laxjson.lax_json_eof(self.ctx)
+   self.line = self.ctx[0].line
+   self.column = self.ctx[0].column
+   return err
 end
 
 
 function _M:str_err (err)
-   return laxjson.lax_json_str_err(err)
+   return ffi_str(laxjson.lax_json_str_err(err))
 end
 
 

@@ -43,21 +43,23 @@ local laxj = laxjson.new {
 local amt_read
 local f = io_open("file.json", "r")
 while true do
-   local buf, rest = f:read(1024)
-   if not buf then
-      break
-   end
+   local buf, rest = f:read(1024, "*line")
+   if not buf then break end
    amt_read = #buf
    local err = laxj:feed(amt_read, buf)
    if err ~= C.LaxJsonErrorNone then
-      print(laxj:str_err(err))
+      print(string.format("Line %d, column %d: %s\n",
+                          laxj.line, laxj.column, laxj:str_err(err)))
+      laxj:free()
+      return
    end
    laxj:feed(amt_read, buf)
 end
 
 local err = laxj:eof()
 if err ~= C.LaxJsonErrorNone then
-   print(laxj:str_err(err))
+   print(string.format("Line %d, column %d: %s\n",
+                       laxj.line, laxj.column, laxj:str_err(err)))
 end
 
 laxj:free()
