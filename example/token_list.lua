@@ -8,13 +8,13 @@ local io_open = io.open
 -- local laxj = laxjson.new()
 local laxj = laxjson.new {
    fn_string = function (ctx, ltype, value, length)
-      local type_name = ltype == C.LaxJsonTypeProperty and "primitive" or "string"
+      local type_name = ltype == C.LaxJsonTypeProperty and "property" or "string"
       print(type_name..": "..ffi_str(value))
-      return C.LaxJsonErrorNone
+      return 0
    end,
    fn_number = function (ctx, x)
       print(x)
-      return C.LaxJsonErrorNone
+      return 0
    end,
    fn_primitive = function (ctx, ltype)
       local type_name
@@ -26,17 +26,17 @@ local laxj = laxjson.new {
          type_name = "null"
       end
       print("primitive: "..type_name)
-      return C.LaxJsonErrorNone
+      return 0
    end,
    fn_begin = function (ctx, ltype)
       local type_name = ltype == C.LaxJsonTypeArray and "array" or "object"
       print("begin "..type_name)
-      return C.LaxJsonErrorNone
+      return 0
    end,
    fn_end = function (ctx, ltype)
       local type_name = ltype == C.LaxJsonTypeArray and "array" or "object"
       print("end "..type_name)
-      return C.LaxJsonErrorNone
+      return 0
    end
 }
 

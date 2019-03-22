@@ -6,7 +6,6 @@ local ffi_cast = ffi.cast
 local ffi_str = ffi.string
 local ffi_typeof = ffi.typeof
 local NULL = ffi.null
-local print = print
 local setmetatable = setmetatable
 
 
@@ -90,49 +89,34 @@ const char *lax_json_str_err(enum LaxJsonError err);
 ]]
 
 
+local void_t = ffi_typeof("void *")
 local string_t = ffi_typeof("int (*)(struct LaxJsonContext *, enum LaxJsonType, const char *, int)")
 local number_t = ffi_typeof("int (*)(struct LaxJsonContext *, double)")
 local other_t = ffi_typeof("int (*)(struct LaxJsonContext *, enum LaxJsonType)")
 
 
-local function default_string (ctx, jtype, value, length)
-    local type_name = jtype == C.LaxJsonTypeProperty and "property" or "string"
-    print(type_name..": "..ffi_str(value))
-    return C.LaxJsonErrorNone
+local function on_string (ctx, jtype, value, length)
+    return 0
 end
 
 
-local function default_number (ctx, x)
-    print(x)
-    return C.LaxJsonErrorNone
+local function on_number (ctx, x)
+    return 0
 end
 
 
-local function default_primitive (ctx, jtype)
-    local type_name
-    if jtype == C.LaxJsonTypeTrue then
-        type_name = "true"
-    elseif jtype == C.LaxJsonTypeFalse then
-        type_name = "false"
-    else
-        type_name = "null"
-    end
-    print("primitive: "..type_name)
-    return C.LaxJsonErrorNone
+local function on_primitive (ctx, jtype)
+    return 0
 end
 
 
-local function default_begin (ctx, jtype)
-    local type_name = jtype == C.LaxJsonTypeArray and "array" or "object"
-    print("begin "..type_name)
-    return C.LaxJsonErrorNone
+local function on_begin (ctx, jtype)
+    return 0
 end
 
 
-local function default_end (ctx, jtype)
-    local type_name = jtype == C.LaxJsonTypeArray and "array" or "object"
-    print("end "..type_name)
-    return C.LaxJsonErrorNone
+local function on_end (ctx, jtype)
+    return 0
 end
 
 
@@ -151,59 +135,59 @@ function _M.new (o)
     local o = o or {}
 
     local ctx = laxjson.lax_json_create()
-    ctx[0].userdata = o.userdata or NULL
-    ctx[0].string = ffi_cast(string_t, o.fn_string or default_string)
-    ctx[0].number = ffi_cast(number_t, o.fn_number or default_number)
-    ctx[0].primitive = ffi_cast(other_t, o.fn_primitive or default_primitive)
-    ctx[0].begin = ffi_cast(other_t, o.fn_begin or default_begin)
-    ctx[0]["end"] = ffi_cast(other_t, o.fn_end or default_end)
+    ctx.userdata = ffi_cast(void_t, o.userdata or NULL)
+    ctx.string = ffi_cast(string_t, o.fn_string or on_string)
+    ctx.number = ffi_cast(number_t, o.fn_number or on_number)
+    ctx.primitive = ffi_cast(other_t, o.fn_primitive or on_primitive)
+    ctx.begin = ffi_cast(other_t, o.fn_begin or on_begin)
+    ctx["end"] = ffi_cast(other_t, o.fn_end or on_end)
 
-    return setmetatable({ ctx = ctx }, mt)
+    return setmetatable({ ctx = ctx, userdata = ctx.userdata }, mt)
 end
 
 
 function _M:set_userdata (data)
-    self.ctx[0].userdata = ffi_cast("void *", data)
+    self.ctx.userdata = ffi_cast("void *", data)
 end
 
 
 function _M:set_fn_string (fn)
-    self.ctx[0].string = ffi_cast(string_t, fn)
+    self.ctx.string = ffi_cast(string_t, fn)
 end
 
 
 function _M:set_fn_number (fn)
-    self.ctx[0].number = ffi_cast(number_t, fn)
+    self.ctx.number = ffi_cast(number_t, fn)
 end
 
 
 function _M:set_fn_primitive (fn)
-    self.ctx[0].primitive = ffi_cast(other_t, fn)
+    self.ctx.primitive = ffi_cast(other_t, fn)
 end
 
 
 function _M:set_fn_begin (fn)
-    self.ctx[0].begin = ffi_cast(other_t, fn)
+    self.ctx.begin = ffi_cast(other_t, fn)
 end
 
 
 function _M:set_fn_end (fn)
-    self.ctx[0]["end"] = ffi_cast(other_t, fn)
+    self.ctx["end"] = ffi_cast(other_t, fn)
 end
 
 
 function _M:feed (amt_read, buf)
     local err = laxjson.lax_json_feed(self.ctx, amt_read, buf)
-    self.line = self.ctx[0].line
-    self.column = self.ctx[0].column
+    self.line = self.ctx.line
+    self.column = self.ctx.column
     return err
 end
 
 
 function _M:eof ()
     local err = laxjson.lax_json_eof(self.ctx)
-    self.line = self.ctx[0].line
-    self.column = self.ctx[0].column
+    self.line = self.ctx.line
+    self.column = self.ctx.column
     return err
 end
 
