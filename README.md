@@ -60,7 +60,8 @@ local laxj = laxjson.new {
     end
 }
 
-local ok, l, col, err = laxj:parse("array.json")
+-- The file 'array.json' is read by 8 bytes.
+local ok, l, col, err = laxj:parse("array.json", 8) 
 if not ok then
     print("Line "..l..", column "..col..": "..err)
 end
