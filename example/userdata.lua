@@ -1,9 +1,18 @@
 local ffi = require "ffi"
 local laxjson = require "laxjson"
 local C = ffi.C
+local ffi_new = ffi.new
 local ffi_cast = ffi.cast
 local ffi_str = ffi.string
 local io_open = io.open
+local LaxJsonTypeString = C.LaxJsonTypeString
+local LaxJsonTypeProperty = C.LaxJsonTypeProperty
+local LaxJsonTypeNumber = C.LaxJsonTypeNumber
+local LaxJsonTypeObject = C.LaxJsonTypeObject
+local LaxJsonTypeArray = C.LaxJsonTypeArray
+local LaxJsonTypeTrue = C.LaxJsonTypeTrue
+local LaxJsonTypeFalse = C.LaxJsonTypeFalse
+local LaxJsonTypeNull = C.LaxJsonTypeNull
 
 ffi.cdef[[
 typedef struct {
@@ -19,7 +28,7 @@ end
 
 
 local function on_end (ctx, ltype)
-    if ltype == C.LaxJsonTypeArray then
+    if ltype == LaxJsonTypeArray then
         local data = mydata(ctx.userdata)
         data.menu = 0
         print("end of menuitem")
@@ -29,9 +38,9 @@ end
 
 
 local laxj = laxjson.new {
-    userdata = ffi.new("mydata_t[1]"),
+    userdata = ffi_new("mydata_t[1]"),
     on_string = function (ctx, ltype, value, length)
-        if ltype == C.LaxJsonTypeProperty then
+        if ltype == LaxJsonTypeProperty then
             if ffi_str(value) == "id" then
                 print("id found")
             end
@@ -41,7 +50,7 @@ local laxj = laxjson.new {
 
     on_begin = function (ctx, ltype)
         local data = mydata(ctx.userdata)
-        if ltype == C.LaxJsonTypeArray then
+        if ltype == LaxJsonTypeArray then
             data.menu = 1
             data.count = 0
         else
@@ -61,19 +70,19 @@ while true do
     local buf = f:read(32)
     if not buf then break end
     amt_read = #buf
-    local err = laxj:feed(amt_read, buf)
-    if err ~= C.LaxJsonErrorNone then
-        print(string.format("Line %d, column %d: %s\n",
-                            laxj.line, laxj.column, laxj:str_err(err)))
+    local ok, err = laxj:feed(amt_read, buf)
+    if not ok then
+        print(string.format("Line %d, column %d: %s",
+                            laxj.line, laxj.column, err))
         laxj:free()
         return
     end
 end
 
-local err = laxj:eof()
-if err ~= C.LaxJsonErrorNone then
-    print(string.format("Line %d, column %d: %s\n",
-                        laxj.line, laxj.column, laxj:str_err(err)))
+local ok, err = laxj:eof()
+if not ok then
+    print(string.format("Line %d, column %d: %s",
+                        laxj.line, laxj.column, err))
 end
 
 print("# of menuitem: "..mydata(laxj.userdata).count)

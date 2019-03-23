@@ -136,6 +136,11 @@ end
 
 
 local laxjson = ffi_load "laxjson"
+local lax_json_create = laxjson.lax_json_create
+local lax_json_destroy = laxjson.lax_json_destroy
+local lax_json_feed = laxjson.lax_json_feed
+local lax_json_eof = laxjson.lax_json_eof
+local lax_json_str_err = laxjson.lax_json_str_err
 
 
 local _M = {
@@ -148,8 +153,8 @@ local mt = { __index = _M }
 
 function _M.new (o)
     local o = o or {}
+    local ctx = lax_json_create()
 
-    local ctx = laxjson.lax_json_create()
     ctx.userdata = ffi_cast(void_t, o.userdata or NULL)
     ctx.string = ffi_cast(string_t, o.on_string or on_string)
     ctx.number = ffi_cast(number_t, o.on_number or on_number)
@@ -158,6 +163,33 @@ function _M.new (o)
     ctx["end"] = ffi_cast(other_t, o.on_end or on_end)
 
     return setmetatable({ ctx = ctx, userdata = ctx.userdata }, mt)
+end
+
+
+function _M:free ()
+    lax_json_destroy(self.ctx);
+end
+
+
+function _M:feed (amt_read, buf)
+    local err = lax_json_feed(self.ctx, amt_read, buf)
+    self.line = self.ctx.line
+    self.column = self.ctx.column
+    if (err ~= C.LaxJsonErrorNone) then
+        return false, ffi_str(lax_json_str_err(err))
+    end
+    return true
+end
+
+
+function _M:eof ()
+    local err = lax_json_eof(self.ctx)
+    self.line = self.ctx.line
+    self.column = self.ctx.column
+    if (err ~= C.LaxJsonErrorNone) then
+        return false, ffi_str(lax_json_str_err(err))
+    end
+    return true
 end
 
 
@@ -188,32 +220,6 @@ end
 
 function _M:set_on_end (fn)
     self.ctx["end"] = ffi_cast(other_t, fn)
-end
-
-
-function _M:feed (amt_read, buf)
-    local err = laxjson.lax_json_feed(self.ctx, amt_read, buf)
-    self.line = self.ctx.line
-    self.column = self.ctx.column
-    return err
-end
-
-
-function _M:eof ()
-    local err = laxjson.lax_json_eof(self.ctx)
-    self.line = self.ctx.line
-    self.column = self.ctx.column
-    return err
-end
-
-
-function _M:str_err (err)
-    return ffi_str(laxjson.lax_json_str_err(err))
-end
-
-
-function _M:free ()
-    laxjson.lax_json_destroy(self.ctx);
 end
 
 
