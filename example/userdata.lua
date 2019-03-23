@@ -65,24 +65,22 @@ local laxj = laxjson.new {
 laxj:set_on_end(on_end)
 
 local amt_read
-local f = io_open("menu.json", "r")
+local f = io_open("file.json", "r")
 while true do
     local buf = f:read(32)
     if not buf then break end
     amt_read = #buf
-    local ok, err = laxj:feed(amt_read, buf)
+    local ok, l, col, err = laxj:feed(amt_read, buf)
     if not ok then
-        print(string.format("Line %d, column %d: %s",
-                            laxj.line, laxj.column, err))
+        print(string.format("Line %d, column %d: %s", l, col, err))
         laxj:free()
         return
     end
 end
 
-local ok, err = laxj:eof()
+local ok, l, col, err = laxj:eof()
 if not ok then
-    print(string.format("Line %d, column %d: %s",
-                        laxj.line, laxj.column, err))
+    print(string.format("Line %d, column %d: %s", l, col, err))
 end
 
 print("# of menuitem: "..mydata(laxj.userdata).count)

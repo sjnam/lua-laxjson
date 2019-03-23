@@ -173,10 +173,9 @@ end
 
 function _M:feed (amt_read, buf)
     local err = lax_json_feed(self.ctx, amt_read, buf)
-    self.line = self.ctx.line
-    self.column = self.ctx.column
     if (err ~= C.LaxJsonErrorNone) then
-        return false, ffi_str(lax_json_str_err(err))
+        return false, self.ctx.line, self.ctx.column,
+        ffi_str(lax_json_str_err(err))
     end
     return true
 end
@@ -184,10 +183,9 @@ end
 
 function _M:eof ()
     local err = lax_json_eof(self.ctx)
-    self.line = self.ctx.line
-    self.column = self.ctx.column
     if (err ~= C.LaxJsonErrorNone) then
-        return false, ffi_str(lax_json_str_err(err))
+        return false, self.ctx.line, self.ctx.column,
+        ffi_str(lax_json_str_err(err))
     end
     return true
 end
