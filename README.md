@@ -53,7 +53,8 @@ local laxj = laxjson.new {
    end
 }
 
-local ok, l, col, err = laxj:parse("file.json")
+-- The 'file.json' is read by 64 bytes.
+local ok, l, col, err = laxj:parse("file.json", 64)
 if not ok then
     print("Line "..l..", column "..col..": "..err)
 end
@@ -85,9 +86,9 @@ Destroy laxjson context.
 
 parse
 -----
-`syntax: ok, line, column, err = laxj:feed(json_file)`
+`syntax: ok, line, column, err = laxj:feed(json_file, size)`
 
-Parse json file.
+Parse json file. The file is read by `size` bytes.
 
 Author
 ======
