@@ -6,6 +6,8 @@ local ffi_cast = ffi.cast
 local ffi_str = ffi.string
 local ffi_typeof = ffi.typeof
 local NULL = ffi.null
+local io_open = io.open
+local assert = assert
 local setmetatable = setmetatable
 
 
@@ -171,28 +173,48 @@ function _M:free ()
 end
 
 
-function _M:feed (amt_read, buf)
-    local err = lax_json_feed(self.ctx, amt_read, buf)
-    if (err ~= C.LaxJsonErrorNone) then
-        return false, self.ctx.line, self.ctx.column,
-        ffi_str(lax_json_str_err(err))
+local function feed (ctx, buf)
+    local err = lax_json_feed(ctx, #buf, buf)
+    if err ~= C.LaxJsonErrorNone then
+        return false, ctx.line, ctx.column, ffi_str(lax_json_str_err(err))
     end
     return true
 end
 
 
-function _M:eof ()
-    local err = lax_json_eof(self.ctx)
-    if (err ~= C.LaxJsonErrorNone) then
-        return false, self.ctx.line, self.ctx.column,
-        ffi_str(lax_json_str_err(err))
+local function eof (ctx)
+    local err = lax_json_eof(ctx)
+    if err ~= C.LaxJsonErrorNone then
+        return false, ctx.line, ctx.column, ffi_str(lax_json_str_err(err))
     end
+    return true
+end
+
+
+function _M:parse (fname)
+    local f = assert(io_open(fname, "r"))
+    while true do
+        local buf = f:read(32)
+        if not buf then break end
+        local ok, line, column, err = feed(self.ctx, buf)
+        if not ok then
+            f:close()
+            return ok, line, column, err
+        end
+    end
+
+    local ok, line, column, err = eof(self.ctx)
+    if not ok then
+        f:close()
+        return ok, line, column, err
+    end
+    f:close()
     return true
 end
 
 
 function _M:set_userdata (data)
-    self.ctx.userdata = ffi_cast("void *", data)
+    self.ctx.userdata = ffi_cast(void_t, data)
 end
 
 
