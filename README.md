@@ -3,8 +3,8 @@ Name
 lua-laxjson - Lua bindings to [liblaxjson](https://github.com/andrewrk/liblaxjson)
 for LuaJIT using FFI.
 
-[liblaxjson](https://github.com/andrewrk/liblaxjson) is a relaxed streaming JSON parser
-C library. You don't have to buffer the entire JSON string in memory before parsing it.
+The library liblaxjson is a relaxed streaming JSON parser written in C.
+You don't have to buffer the entire JSON string in memory before parsing it.
 
 Status
 ======
@@ -66,8 +66,7 @@ Installation
 To install `lua-laxjson` you need to install
 [liblaxjson](https://github.com/andrewrk/liblaxjson#installation)
 with shared libraries firtst.
-Then you can install `lua-laxjson` by placing `laxjson.lua` to
-your lua library path.
+Then you can install it by placing `laxjson.lua` to your lua library path.
 
 Methods
 =======
