@@ -117,7 +117,7 @@ local function on_string (ctx, jtype, value, length)
 end
 
 
-local function on_number (ctx, x)
+local function on_number (ctx, num)
     return 0
 end
 
@@ -164,7 +164,7 @@ function _M.new (o)
     ctx.begin = ffi_cast(other_t, o.on_begin or on_begin)
     ctx["end"] = ffi_cast(other_t, o.on_end or on_end)
 
-    return setmetatable({ ctx = ctx, userdata = ctx.userdata }, mt)
+    return setmetatable({ ctx = ctx }, mt)
 end
 
 
@@ -210,36 +210,6 @@ function _M:parse (fname)
     end
     f:close()
     return true
-end
-
-
-function _M:set_userdata (data)
-    self.ctx.userdata = ffi_cast(void_t, data)
-end
-
-
-function _M:set_on_string (fn)
-    self.ctx.string = ffi_cast(string_t, fn)
-end
-
-
-function _M:set_on_number (fn)
-    self.ctx.number = ffi_cast(number_t, fn)
-end
-
-
-function _M:set_on_primitive (fn)
-    self.ctx.primitive = ffi_cast(other_t, fn)
-end
-
-
-function _M:set_on_begin (fn)
-    self.ctx.begin = ffi_cast(other_t, fn)
-end
-
-
-function _M:set_on_end (fn)
-    self.ctx["end"] = ffi_cast(other_t, fn)
 end
 
 
