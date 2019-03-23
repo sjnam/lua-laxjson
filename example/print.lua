@@ -1,14 +1,3 @@
-Name
-====
-lua-laxjson - Lua bindings to [liblaxjson](https://github.com/andrewrk/liblaxjson)
-for LuaJIT using FFI.
-
-The library liblaxjson is a relaxed streaming JSON parser written in C.
-You don't have to buffer the entire JSON string in memory before parsing it.
-
-Synopsis
-========
-````lua
 local ffi = require "ffi"
 local C = ffi.C
 local laxjson = require "laxjson"
@@ -66,40 +55,3 @@ if not ok then
 end
 
 laxj:free()
-````
-
-Installation
-============
-To install `lua-laxjson` you need to install
-[liblaxjson](https://github.com/andrewrk/liblaxjson#installation)
-with shared libraries firtst.
-Then you can install it by placing `laxjson.lua` to your lua library path.
-
-Methods
-=======
-
-new
----
-`syntax: laxj = laxjson.new(obj)`
-
-Create laxjson context.
-
-free
-----
-`syntax: laxj:free()`
-
-Destroy laxjson context.
-
-parse
------
-`syntax: ok, line, column, err = laxj:feed(json_file, size)`
-
-Parse json file. The json file is read by `size` bytes.
-
-Author
-======
-Soojin Nam jsunam@gmail.com
-
-License
-=======
-Public Domain

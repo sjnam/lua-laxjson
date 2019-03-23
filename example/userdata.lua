@@ -10,7 +10,8 @@ local LaxJsonTypeProperty = C.LaxJsonTypeProperty
 
 ffi.cdef[[
 typedef struct {
-     uint8_t id, menu, count;
+    char id[16];
+    uint8_t xid, menu, count;
 } mydata_t;
 ]]
 
@@ -26,13 +27,11 @@ local laxj = laxjson.new {
         local data = mydata(ctx)
         if jtype == LaxJsonTypeProperty then
             if ffi_str(value) == "id" then
-                data.id = 1
+                data.xid = 1
             end
-        else
-            if data.id == 1 then
-                print("id: "..ffi_str(value, length))
-                data.id = 0
-            end
+        elseif data.xid == 1 then
+            ffi.copy(data.id, value, length)
+            data.xid = 0
         end
         return 0
     end,
@@ -41,10 +40,8 @@ local laxj = laxjson.new {
         if jtype == LaxJsonTypeArray then
             data.menu = 1
             data.count = 0
-        else
-            if data.menu == 1 then
-                data.count = data.count + 1
-            end
+        elseif data.menu == 1 then
+            data.count = data.count + 1
         end
         return 0
     end,
@@ -57,11 +54,12 @@ local laxj = laxjson.new {
     end
 }
 
-local ok, l, col, err = laxj:parse("file.json")
+local ok, l, col, err = laxj:parse("menu.json", 8)
 if not ok then
     print("Line "..l..", column "..col..": "..err)
 end
 
+print("id: ".. ffi_str(mydata(laxj.ctx).id))
 print("# of menuitem: "..mydata(laxj.ctx).count)
 
 laxj:free()
