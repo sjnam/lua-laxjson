@@ -1,6 +1,6 @@
-Name
+lua-laxjson
 ====
-lua-laxjson - Lua bindings to [liblaxjson](https://github.com/andrewrk/liblaxjson)
+Lua bindings to [liblaxjson](https://github.com/andrewrk/liblaxjson)
 for LuaJIT using FFI.
 
 The library liblaxjson is a relaxed streaming JSON parser written in C.
