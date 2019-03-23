@@ -4,8 +4,8 @@ local C = ffi.C
 local ffi_new = ffi.new
 local ffi_cast = ffi.cast
 local ffi_str = ffi.string
-local LaxJsonTypeProperty = C.LaxJsonTypeProperty
 local LaxJsonTypeArray = C.LaxJsonTypeArray
+local LaxJsonTypeProperty = C.LaxJsonTypeProperty
 
 
 ffi.cdef[[

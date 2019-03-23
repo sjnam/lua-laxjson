@@ -170,11 +170,12 @@ function _M:free ()
 end
 
 
-function _M:parse (fname)
+function _M:parse (fname, n)
+    local n = n or 1024
     local ctx = self.ctx
     local f = assert(io_open(fname, "r"))
     while true do
-        local buf = f:read(32)
+        local buf = f:read(n)
         if not buf then break end
         local err = lax_json_feed(ctx, #buf, buf)
         if err ~= C.LaxJsonErrorNone then
