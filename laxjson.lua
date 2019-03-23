@@ -150,9 +150,6 @@ local _M = {
 }
 
 
-local mt = { __index = _M }
-
-
 function _M.new (o)
     local o = o or {}
     local ctx = lax_json_create()
@@ -164,7 +161,7 @@ function _M.new (o)
     ctx.begin = ffi_cast(other_t, o.on_begin or on_begin)
     ctx["end"] = ffi_cast(other_t, o.on_end or on_end)
 
-    return setmetatable({ ctx = ctx }, mt)
+    return setmetatable({ ctx = ctx }, { __index = _M })
 end
 
 
@@ -173,40 +170,22 @@ function _M:free ()
 end
 
 
-local function feed (ctx, buf)
-    local err = lax_json_feed(ctx, #buf, buf)
-    if err ~= C.LaxJsonErrorNone then
-        return false, ctx.line, ctx.column, ffi_str(lax_json_str_err(err))
-    end
-    return true
-end
-
-
-local function eof (ctx)
-    local err = lax_json_eof(ctx)
-    if err ~= C.LaxJsonErrorNone then
-        return false, ctx.line, ctx.column, ffi_str(lax_json_str_err(err))
-    end
-    return true
-end
-
-
 function _M:parse (fname)
+    local ctx = self.ctx
     local f = assert(io_open(fname, "r"))
     while true do
         local buf = f:read(32)
         if not buf then break end
-        local ok, line, column, err = feed(self.ctx, buf)
-        if not ok then
+        local err = lax_json_feed(ctx, #buf, buf)
+        if err ~= C.LaxJsonErrorNone then
             f:close()
-            return ok, line, column, err
+            return false, ctx.line, ctx.column, ffi_str(lax_json_str_err(err))
         end
     end
-
-    local ok, line, column, err = eof(self.ctx)
-    if not ok then
+    local err = lax_json_eof(ctx)
+    if err ~= C.LaxJsonErrorNone then
         f:close()
-        return ok, line, column, err
+        return false, ctx.line, ctx.column, ffi_str(lax_json_str_err(err))
     end
     f:close()
     return true
