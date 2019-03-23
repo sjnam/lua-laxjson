@@ -6,8 +6,8 @@ for LuaJIT using FFI.
 The library liblaxjson is a relaxed streaming JSON parser written in C.
 You don't have to buffer the entire JSON string in memory before parsing it.
 
-Synopsis
-========
+Usage
+=====
 ````lua
 local ffi = require "ffi"
 local C = ffi.C
