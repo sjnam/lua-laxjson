@@ -6,10 +6,6 @@ for LuaJIT using FFI.
 The library liblaxjson is a relaxed streaming JSON parser written in C.
 You don't have to buffer the entire JSON string in memory before parsing it.
 
-Status
-======
-This library is still experimental and under early development.
-
 Synopsis
 ========
 ````lua
@@ -88,7 +84,7 @@ parse
 -----
 `syntax: ok, line, column, err = laxj:feed(json_file, size)`
 
-Parse json file. The file is read by `size` bytes.
+Parse json file. The json file is read by `size` bytes.
 
 Author
 ======
