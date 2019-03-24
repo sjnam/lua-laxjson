@@ -137,22 +137,17 @@ local function on_end (ctx, jtype)
 end
 
 
-local laxjson = ffi_load "laxjson"
-local lax_json_create = laxjson.lax_json_create
-local lax_json_destroy = laxjson.lax_json_destroy
-local lax_json_feed = laxjson.lax_json_feed
-local lax_json_eof = laxjson.lax_json_eof
-local lax_json_str_err = laxjson.lax_json_str_err
-
-
 local _M = {
     version = "0.2.8"
 }
 
 
+local laxjson = ffi_load "laxjson"
+
+
 function _M.new (o)
     local o = o or {}
-    local ctx = lax_json_create()
+    local ctx = laxjson.lax_json_create()
 
     ctx.userdata = ffi_cast(void_t, o.userdata or NULL)
     ctx.string = ffi_cast(string_t, o.on_string or on_string)
@@ -166,27 +161,29 @@ end
 
 
 function _M:free ()
-    lax_json_destroy(self.ctx);
+    laxjson.lax_json_destroy(self.ctx);
 end
 
 
 function _M:parse (fname, n)
-    local n = n or 1024
+    local n = n or 8192
     local ctx = self.ctx
     local f = assert(io_open(fname, "r"))
     while true do
         local buf = f:read(n)
         if not buf then break end
-        local err = lax_json_feed(ctx, #buf, buf)
+        local err = laxjson.lax_json_feed(ctx, #buf, buf)
         if err ~= C.LaxJsonErrorNone then
             f:close()
-            return false, ctx.line, ctx.column, ffi_str(lax_json_str_err(err))
+            return false, ctx.line, ctx.column,
+            ffi_str(laxjson.lax_json_str_err(err))
         end
     end
-    local err = lax_json_eof(ctx)
+    local err = laxjson.lax_json_eof(ctx)
     if err ~= C.LaxJsonErrorNone then
         f:close()
-        return false, ctx.line, ctx.column, ffi_str(lax_json_str_err(err))
+        return false, ctx.line, ctx.column,
+        ffi_str(laxjson.lax_json_str_err(err))
     end
     f:close()
     return true
