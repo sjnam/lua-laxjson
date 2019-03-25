@@ -1,11 +1,9 @@
 local ffi = require "ffi"
 
 local C = ffi.C
-local ffi_load = ffi.load
-local ffi_cast = ffi.cast
-local ffi_str = ffi.string
-local ffi_typeof = ffi.typeof
 local NULL = ffi.null
+local ffi_load = ffi.load
+local ffi_str = ffi.string
 local io_open = io.open
 local assert = assert
 local setmetatable = setmetatable
@@ -106,11 +104,7 @@ const char *lax_json_str_err(enum LaxJsonError err);
 ]]
 
 
-local void_t = ffi_typeof("void *")
-local string_t = ffi_typeof("int (*)(struct LaxJsonContext *, enum LaxJsonType, const char *, int)")
-local number_t = ffi_typeof("int (*)(struct LaxJsonContext *, double)")
-local other_t = ffi_typeof("int (*)(struct LaxJsonContext *, enum LaxJsonType)")
-
+-- default callbacks
 
 local function on_string (ctx, jtype, value, length)
     return 0
@@ -137,8 +131,10 @@ local function on_end (ctx, jtype)
 end
 
 
+-- module
+
 local _M = {
-    version = "0.2.8"
+    version = "0.3.0"
 }
 
 
@@ -147,14 +143,14 @@ local laxjson = ffi_load "laxjson"
 
 function _M.new (o)
     local o = o or {}
-    local ctx = laxjson.lax_json_create()
 
-    ctx.userdata = ffi_cast(void_t, o.userdata or NULL)
-    ctx.string = ffi_cast(string_t, o.on_string or on_string)
-    ctx.number = ffi_cast(number_t, o.on_number or on_number)
-    ctx.primitive = ffi_cast(other_t, o.on_primitive or on_primitive)
-    ctx.begin = ffi_cast(other_t, o.on_begin or on_begin)
-    ctx["end"] = ffi_cast(other_t, o.on_end or on_end)
+    local ctx = laxjson.lax_json_create()
+    ctx.userdata = o.userdata or NULL
+    ctx.string = o.on_string or on_string
+    ctx.number = o.on_number or on_number
+    ctx.primitive = o.on_primitive or on_primitive
+    ctx.begin = o.on_begin or on_begin
+    ctx["end"] = o.on_end or on_end
 
     return setmetatable({ ctx = ctx }, { __index = _M })
 end
@@ -166,7 +162,7 @@ end
 
 
 function _M:parse (fname, n)
-    local n = n or 8192
+    local n = n or 2^13 -- 8K
     local ctx = self.ctx
     local f = assert(io_open(fname, "r"))
     while true do
