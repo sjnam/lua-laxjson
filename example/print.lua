@@ -49,7 +49,7 @@ local laxj = laxjson.new {
     end
 }
 
-local ok, l, col, err = laxj:parse("array.json")
+local ok, l, col, err = laxj:parse("file.json", 1024)
 if not ok then
     print("Line "..l..", column "..col..": "..err)
 end
