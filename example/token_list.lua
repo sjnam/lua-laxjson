@@ -36,6 +36,7 @@ local laxj = laxjson.new {
     end
 }
 
+-- The file 'file.json' is read by 1024 bytes.
 local ok, l, col, err = laxj:parse("file.json", 1024)
 if not ok then
     print("Line "..l..", column "..col..": "..err)
