@@ -52,8 +52,6 @@ local ok, l, col, err = laxj:parse("file.json", 1024)
 if not ok then
     print("Line "..l..", column "..col..": "..err)
 end
-
-laxj:free()
 ````
 
 Installation
@@ -71,12 +69,6 @@ new
 `syntax: laxj = laxjson.new(obj)`
 
 Create laxjson context.
-
-free
-----
-`syntax: laxj:free()`
-
-Destroy laxjson context.
 
 parse
 -----

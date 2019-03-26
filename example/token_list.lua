@@ -41,5 +41,3 @@ local ok, l, col, err = laxj:parse("file.json", 1024)
 if not ok then
     print("Line "..l..", column "..col..": "..err)
 end
-
-laxj:free()

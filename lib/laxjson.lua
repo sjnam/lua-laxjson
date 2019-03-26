@@ -156,11 +156,6 @@ function _M.new (o)
 end
 
 
-function _M:free ()
-    laxjson.lax_json_destroy(self.ctx);
-end
-
-
 function _M:parse (fname, n)
     local err = 0
     local n = n or 2^13 -- 8K
@@ -176,10 +171,12 @@ function _M:parse (fname, n)
         err = laxjson.lax_json_eof(ctx)
     end
     f:close()
+    local line, column = ctx.line, ctx.column
+    laxjson.lax_json_destroy(ctx);
     if err == 0 then
         return true
     end
-    return false, ctx.line, ctx.column, ffi_str(laxjson.lax_json_str_err(err))
+    return false, line, column, ffi_str(laxjson.lax_json_str_err(err))
 end
 
 

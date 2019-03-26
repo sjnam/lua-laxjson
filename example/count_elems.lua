@@ -42,5 +42,3 @@ if not ok then
 else
     print("# of arrayelems: "..userdata[0].count)
 end
-
-laxj:free()
