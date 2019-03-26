@@ -1,7 +1,6 @@
 local ffi = require "ffi"
 
 local C = ffi.C
-local NULL = ffi.null
 local ffi_load = ffi.load
 local ffi_str = ffi.string
 local io_open = io.open
@@ -104,29 +103,13 @@ const char *lax_json_str_err(enum LaxJsonError err);
 ]]
 
 
--- default callbacks
-
+-- on_string
 local function on_string (ctx, jtype, value, length)
     return 0
 end
 
-
-local function on_number (ctx, num)
-    return 0
-end
-
-
-local function on_primitive (ctx, jtype)
-    return 0
-end
-
-
-local function on_begin (ctx, jtype)
-    return 0
-end
-
-
-local function on_end (ctx, jtype)
+-- on_{number, primitive, begin, end}
+local function default_cb (ctx, x)
     return 0
 end
 
@@ -145,12 +128,12 @@ function _M.new (o)
     local o = o or {}
 
     local ctx = laxjson.lax_json_create()
-    ctx.userdata = o.userdata or NULL
+    ctx.userdata = o.userdata
     ctx.string = o.on_string or on_string
-    ctx.number = o.on_number or on_number
-    ctx.primitive = o.on_primitive or on_primitive
-    ctx.begin = o.on_begin or on_begin
-    ctx["end"] = o.on_end or on_end
+    ctx.number = o.on_number or default_cb
+    ctx.primitive = o.on_primitive or default_cb
+    ctx.begin = o.on_begin or default_cb
+    ctx["end"] = o.on_end or default_cb
 
     return setmetatable({ ctx = ctx }, { __index = _M })
 end
