@@ -139,6 +139,31 @@ function _M.new (o)
 end
 
 
+function _M:free ()
+    laxjson.lax_json_destroy(self.ctx)
+end
+
+
+function _M:lax_json_feed (size, data)
+    local ctx = self.ctx
+    local err = laxjson.lax_json_feed(ctx, size, data)
+    if err ~= 0 then
+        return false, ctx.line, ctx.column, ffi_str(laxjson.lax_json_str_err(err))
+    end
+    return true
+end
+
+
+function _M:lax_json_eof ()
+    local ctx = self.ctx
+    local err = laxjson.lax_json_eof(ctx)
+    if err ~= 0 then
+        return false, ctx.line, ctx.column, ffi_str(laxjson.lax_json_str_err(err))
+    end
+    return true
+end
+
+
 function _M:parse (fname, n)
     local err = 0
     local n = n or 2^13 -- 8K
@@ -155,7 +180,7 @@ function _M:parse (fname, n)
     end
     f:close()
     local line, column = ctx.line, ctx.column
-    laxjson.lax_json_destroy(ctx);
+    laxjson.lax_json_destroy(ctx)
     if err == 0 then
         return true
     end

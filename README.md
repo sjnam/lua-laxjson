@@ -70,6 +70,24 @@ new
 
 Create laxjson context.
 
+free
+----
+`syntax: laxj:free()`
+
+Destroy laxjson context.
+
+feed
+----
+`syntax: ok, line, column, err = laxj:feed(size, buf)`
+
+Feed string to parse by `size` bytes.
+
+eof
+---
+`syntax: ok, line, column, err = laxj:eof()`
+
+Check EOF.
+
 parse
 -----
 `syntax: ok, line, column, err = laxj:feed(json_file, size)`
