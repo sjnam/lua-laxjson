@@ -1,6 +1,6 @@
 lua-laxjson
 ====
-Lua bindings to [liblaxjson](https://github.com/andrewrk/liblaxjson)
+Lua binding to [liblaxjson](https://github.com/andrewrk/liblaxjson)
 for LuaJIT using FFI.
 
 The library liblaxjson is a relaxed streaming JSON parser written in C.
@@ -13,11 +13,15 @@ Usage
 ````lua
 local ffi = require "ffi"
 local laxjson = require "laxjson"
-local C = ffi.C
 
 local laxj = laxjson.new {
     on_string = function (ctx, jtype, value, length)
-        local type_name = jtype == C.LaxJsonTypeProperty and "property" or "string"
+        local type_name
+        if jtype == laxjson.LaxJsonTypeProperty then
+            type_name = "property"
+        else
+            type_name = "string"
+        end
         print(type_name..": "..ffi.string(value, length))
         return 0
     end,
@@ -27,9 +31,9 @@ local laxj = laxjson.new {
     end,
     on_primitive = function (ctx, jtype)
         local type_name
-        if jtype == C.LaxJsonTypeTrue then
+        if jtype == laxjson.LaxJsonTypeTrue then
             type_name = "true"
-        elseif jtype == C.LaxJsonTypeFalse then
+        elseif jtype == laxjson.LaxJsonTypeFalse then
             type_name = "false"
         else
             type_name = "null"
@@ -38,19 +42,29 @@ local laxj = laxjson.new {
         return 0
     end,
     on_begin = function (ctx, jtype)
-        local type_name = jtype == C.LaxJsonTypeArray and "array" or "object"
+        local type_name
+        if jtype == laxjson.LaxJsonTypeArray then
+            type_name = "array"
+        else
+            type_name = "object"
+        end
         print("begin "..type_name)
         return 0
     end,
     on_end = function (ctx, jtype)
-        local type_name = jtype == C.LaxJsonTypeArray and "array" or "object"
+        local type_name
+        if jtype == laxjson.LaxJsonTypeArray then
+            type_name = "array"
+        else
+            type_name = "object"
+        end
         print("end "..type_name)
         return 0
     end
 }
 
 -- The file 'file.json' is read by 1024 bytes.
-local ok, l, col, err = laxj:parse("file.json", 1024) 
+local ok, l, col, err = laxj:parse("file.json", 1024)
 if not ok then
     print("Line "..l..", column "..col..": "..err)
 end
@@ -59,19 +73,17 @@ end
 - Parsing a stream
 ````lua
 local ffi = require "ffi"
-local C = ffi.C
 local laxjson = require "laxjson"
-local requests = require "resty.requests"
 
 local indent = 0
 
 local laxj = laxjson.new {
     on_string = function (ctx, jtype, value, length)
-        if jtype == C.LaxJsonTypeProperty then
+        if jtype == laxjson.LaxJsonTypeProperty then
             io.write(string.rep(" ", indent+1))
         end
         io.write(ffi.string(value, length))
-        io.write(jtype == C.LaxJsonTypeProperty and ": " or "\n")
+        io.write(jtype == laxjson.LaxJsonTypeProperty and ": " or "\n")
         return 0
     end,
     on_number = function (ctx, num)
@@ -80,9 +92,9 @@ local laxj = laxjson.new {
     end,
     on_primitive = function (ctx, jtype)
         local type_name = "null"
-        if jtype == C.LaxJsonTypeTrue then
+        if jtype == laxjson.LaxJsonTypeTrue then
             type_name = "true"
-        elseif jtype == C.LaxJsonTypeFalse then
+        elseif jtype == laxjson.LaxJsonTypeFalse then
             type_name = "false"
         end
         print(type_name)
@@ -90,19 +102,18 @@ local laxj = laxjson.new {
     end,
     on_begin = function (ctx, jtype)
         io.write(string.rep(" ", indent))
-        print(jtype == C.LaxJsonTypeArray and "[" or "{")
+        print(jtype == laxjson.LaxJsonTypeArray and "[" or "{")
         indent = indent + 1
         return 0
     end,
     on_end = function (ctx, jtype)
         indent = indent - 1
         io.write(string.rep(" ", indent))
-        print(jtype == C.LaxJsonTypeArray and "]" or "}")
+        print(jtype == laxjson.LaxJsonTypeArray and "]" or "}")
         return 0
     end
 }
 
--- example url
 local url = "https://ctan.org/json/2.0/packages"
 local r, err = requests.get(url)
 if not r then
@@ -110,15 +121,13 @@ if not r then
     return
 end
 
-local chunk, err, l, c, ok
+local chunk
+local ok, l, c,  err
 while true do
     chunk, err = r:iter_content(2^13)
     if not chunk then
         print(err)
         return
-    end
-    if chunk == "" then
-        break
     end
     ok, l, c, err = laxj:lax_json_feed(#chunk, chunk)
     if not ok then

@@ -1,10 +1,14 @@
 local ffi = require "ffi"
 local laxjson = require "laxjson"
-local C = ffi.C
 
 local laxj = laxjson.new {
     on_string = function (ctx, jtype, value, length)
-        local type_name = jtype == C.LaxJsonTypeProperty and "property" or "string"
+        local type_name
+        if jtype == laxjson.LaxJsonTypeProperty then
+            type_name = "property"
+        else
+            type_name = "string"
+        end
         print(type_name..": "..ffi.string(value, length))
         return 0
     end,
@@ -14,9 +18,9 @@ local laxj = laxjson.new {
     end,
     on_primitive = function (ctx, jtype)
         local type_name
-        if jtype == C.LaxJsonTypeTrue then
+        if jtype == laxjson.LaxJsonTypeTrue then
             type_name = "true"
-        elseif jtype == C.LaxJsonTypeFalse then
+        elseif jtype == laxjson.LaxJsonTypeFalse then
             type_name = "false"
         else
             type_name = "null"
@@ -25,12 +29,22 @@ local laxj = laxjson.new {
         return 0
     end,
     on_begin = function (ctx, jtype)
-        local type_name = jtype == C.LaxJsonTypeArray and "array" or "object"
+        local type_name
+        if jtype == laxjson.LaxJsonTypeArray then
+            type_name = "array"
+        else
+            type_name = "object"
+        end
         print("begin "..type_name)
         return 0
     end,
     on_end = function (ctx, jtype)
-        local type_name = jtype == C.LaxJsonTypeArray and "array" or "object"
+        local type_name
+        if jtype == laxjson.LaxJsonTypeArray then
+            type_name = "array"
+        else
+            type_name = "object"
+        end
         print("end "..type_name)
         return 0
     end

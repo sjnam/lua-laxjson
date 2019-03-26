@@ -121,6 +121,16 @@ local _M = {
 }
 
 
+_M.LaxJsonTypeString = C.LaxJsonTypeString
+_M.LaxJsonTypeProperty = C.LaxJsonTypeProperty
+_M.LaxJsonTypeNumber = C.LaxJsonTypeNumber
+_M.LaxJsonTypeObject = C.LaxJsonTypeObject
+_M.LaxJsonTypeArray = C.LaxJsonTypeArray
+_M.LaxJsonTypeTrue = C.LaxJsonTypeTrue
+_M.LaxJsonTypeFalse = C.LaxJsonTypeFalse
+_M.LaxJsonTypeNull = C.LaxJsonTypeNull     
+
+
 local laxjson = ffi_load "laxjson"
 
 

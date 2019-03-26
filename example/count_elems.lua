@@ -1,5 +1,3 @@
-local ffi = require "ffi"
-local C = ffi.C
 local laxjson = require "laxjson"
 
 
@@ -7,7 +5,7 @@ local on_arr, count = false, 0
 
 local laxj = laxjson.new {
     on_begin = function (ctx, jtype)
-        if jtype == C.LaxJsonTypeArray then
+        if jtype == laxjson.LaxJsonTypeArray then
             on_arr = true
         elseif on_arr then
             count = count + 1
@@ -15,7 +13,7 @@ local laxj = laxjson.new {
         return 0
     end,
     on_end = function (ctx, jtype)
-        if jtype == C.LaxJsonTypeArray then
+        if jtype == laxjson.LaxJsonTypeArray then
             on_arr = false
         end
         return 0
