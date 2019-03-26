@@ -10,11 +10,11 @@ local laxj = laxjson.new {
         end
         io.write(ffi.string(value, length))
         io.write(jtype == laxjson.LaxJsonTypeProperty and ": " or "\n")
-        return 0
+        return laxjson.LaxJsonErrorNone
     end,
     on_number = function (ctx, num)
         print(num)
-        return 0
+        return laxjson.LaxJsonErrorNone
     end,
     on_primitive = function (ctx, jtype)
         local type_name = "null"
@@ -24,19 +24,19 @@ local laxj = laxjson.new {
             type_name = "false"
         end
         print(type_name)
-        return 0
+        return laxjson.LaxJsonErrorNone
     end,
     on_begin = function (ctx, jtype)
         io.write(string.rep(" ", indent))
         print(jtype == laxjson.LaxJsonTypeArray and "[" or "{")
         indent = indent + 1
-        return 0
+        return laxjson.LaxJsonErrorNone
     end,
     on_end = function (ctx, jtype)
         indent = indent - 1
         io.write(string.rep(" ", indent))
         print(jtype == laxjson.LaxJsonTypeArray and "]" or "}")
-        return 0
+        return laxjson.LaxJsonErrorNone
     end
 }
 

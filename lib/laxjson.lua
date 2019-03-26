@@ -1,6 +1,7 @@
 local ffi = require "ffi"
 
 local C = ffi.C
+local NULL = ffi.null
 local ffi_load = ffi.load
 local ffi_str = ffi.string
 local io_open = io.open
@@ -55,11 +56,13 @@ enum LaxJsonError {
     LaxJsonErrorAborted
 };
 
-/* All callbacks must be provided. Return nonzero to abort the ongoing feed operation. */
+/* All callbacks must be provided.
+ Return nonzero to abort the ongoing feed operation. */
 struct LaxJsonContext {
     void *userdata;
     /* type can be property or string */
-    int (*string)(struct LaxJsonContext *, enum LaxJsonType type, const char *value, int length);
+    int (*string)(struct LaxJsonContext *,
+        enum LaxJsonType type, const char *value, int length);
     /* type is always number */
     int (*number)(struct LaxJsonContext *, double x);
     /* type can be true, false, or null */
@@ -96,7 +99,8 @@ struct LaxJsonContext {
 struct LaxJsonContext *lax_json_create(void);
 void lax_json_destroy(struct LaxJsonContext *context);
 
-enum LaxJsonError lax_json_feed(struct LaxJsonContext *context, int size, const char *data);
+enum LaxJsonError lax_json_feed(struct LaxJsonContext *context,
+    int size, const char *data);
 enum LaxJsonError lax_json_eof(struct LaxJsonContext *context);
 
 const char *lax_json_str_err(enum LaxJsonError err);
@@ -105,12 +109,12 @@ const char *lax_json_str_err(enum LaxJsonError err);
 
 -- on_string
 local function on_string (ctx, jtype, value, length)
-    return 0
+    return C.LaxJsonErrorNone
 end
 
 -- on_{number, primitive, begin, end}
 local function default_cb (ctx, x)
-    return 0
+    return C.LaxJsonErrorNone
 end
 
 
@@ -129,6 +133,7 @@ _M.LaxJsonTypeArray = C.LaxJsonTypeArray
 _M.LaxJsonTypeTrue = C.LaxJsonTypeTrue
 _M.LaxJsonTypeFalse = C.LaxJsonTypeFalse
 _M.LaxJsonTypeNull = C.LaxJsonTypeNull     
+_M.LaxJsonErrorNone = C.LaxJsonErrorNone
 
 
 local laxjson = ffi_load "laxjson"
@@ -138,7 +143,7 @@ function _M.new (o)
     local o = o or {}
 
     local ctx = laxjson.lax_json_create()
-    ctx.userdata = o.userdata
+    ctx.userdata = o.userdata or NULL
     ctx.string = o.on_string or on_string
     ctx.number = o.on_number or default_cb
     ctx.primitive = o.on_primitive or default_cb
@@ -150,15 +155,18 @@ end
 
 
 function _M:free ()
-    laxjson.lax_json_destroy(self.ctx)
+    if self.ctx ~= NULL then
+        laxjson.lax_json_destroy(self.ctx)
+    end
 end
 
 
 function _M:lax_json_feed (size, data)
     local ctx = self.ctx
     local err = laxjson.lax_json_feed(ctx, size, data)
-    if err ~= 0 then
-        return false, ctx.line, ctx.column, ffi_str(laxjson.lax_json_str_err(err))
+    if err ~= C.LaxJsonErrorNone then
+        return false, ctx.line, ctx.column,
+        ffi_str(laxjson.lax_json_str_err(err))
     end
     return true
 end
@@ -167,15 +175,16 @@ end
 function _M:lax_json_eof ()
     local ctx = self.ctx
     local err = laxjson.lax_json_eof(ctx)
-    if err ~= 0 then
-        return false, ctx.line, ctx.column, ffi_str(laxjson.lax_json_str_err(err))
+    if err ~= C.LaxJsonErrorNone then
+        return false, ctx.line, ctx.column,
+        ffi_str(laxjson.lax_json_str_err(err))
     end
     return true
 end
 
 
 function _M:parse (fname, n)
-    local err = 0
+    local err = C.LaxJsonErrorNone
     local n = n or 2^13 -- 8K
     local ctx = self.ctx
     local f = assert(io_open(fname, "r"))
@@ -184,14 +193,15 @@ function _M:parse (fname, n)
         local buf = f:read(n)
         if not buf then break end
         err = laxjson.lax_json_feed(ctx, #buf, buf)
-    until err ~= 0
-    if err == 0 then
+    until err ~= C.LaxJsonErrorNone
+    if err == C.LaxJsonErrorNone then
         err = laxjson.lax_json_eof(ctx)
     end
     f:close()
     local line, column = ctx.line, ctx.column
     laxjson.lax_json_destroy(ctx)
-    if err == 0 then
+    self.ctx = NULL
+    if err == C.LaxJsonErrorNone then
         return true
     end
     return false, line, column, ffi_str(laxjson.lax_json_str_err(err))

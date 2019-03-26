@@ -10,13 +10,13 @@ local laxj = laxjson.new {
         elseif on_arr then
             count = count + 1
         end
-        return 0
+        return laxjson.LaxJsonErrorNone -- 0
     end,
     on_end = function (ctx, jtype)
         if jtype == laxjson.LaxJsonTypeArray then
             on_arr = false
         end
-        return 0
+        return laxjson.LaxJsonErrorNone
     end
 }
 

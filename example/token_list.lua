@@ -10,11 +10,11 @@ local laxj = laxjson.new {
             type_name = "string"
         end
         print(type_name..": "..ffi.string(value, length))
-        return 0
+        return laxjson.LaxJsonErrorNone
     end,
     on_number = function (ctx, num)
         print("number: "..num)
-        return 0
+        return laxjson.LaxJsonErrorNone
     end,
     on_primitive = function (ctx, jtype)
         local type_name
@@ -26,7 +26,7 @@ local laxj = laxjson.new {
             type_name = "null"
         end
         print("primitive: "..type_name)
-        return 0
+        return laxjson.LaxJsonErrorNone
     end,
     on_begin = function (ctx, jtype)
         local type_name
@@ -36,7 +36,7 @@ local laxj = laxjson.new {
             type_name = "object"
         end
         print("begin "..type_name)
-        return 0
+        return laxjson.LaxJsonErrorNone
     end,
     on_end = function (ctx, jtype)
         local type_name
@@ -46,7 +46,7 @@ local laxj = laxjson.new {
             type_name = "object"
         end
         print("end "..type_name)
-        return 0
+        return laxjson.LaxJsonErrorNone
     end
 }
 
