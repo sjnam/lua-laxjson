@@ -45,8 +45,8 @@ local laxj = laxjson.new {
 local ok, l, col, err = laxj:parse("array.json")
 if not ok then
     print("Line "..l..", column "..col..": "..err)
+else
+    print("# of arrayelems: "..userdata[0].count)
 end
-
-print("# of arrayelems: "..userdata[0].count)
 
 laxj:free()

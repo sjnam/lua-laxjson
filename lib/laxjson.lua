@@ -162,27 +162,24 @@ end
 
 
 function _M:parse (fname, n)
+    local err = 0
     local n = n or 2^13 -- 8K
     local ctx = self.ctx
     local f = assert(io_open(fname, "r"))
-    while true do
+
+    repeat
         local buf = f:read(n)
         if not buf then break end
-        local err = laxjson.lax_json_feed(ctx, #buf, buf)
-        if err ~= C.LaxJsonErrorNone then
-            f:close()
-            return false, ctx.line, ctx.column,
-            ffi_str(laxjson.lax_json_str_err(err))
-        end
-    end
-    local err = laxjson.lax_json_eof(ctx)
-    if err ~= C.LaxJsonErrorNone then
-        f:close()
-        return false, ctx.line, ctx.column,
-        ffi_str(laxjson.lax_json_str_err(err))
+        err = laxjson.lax_json_feed(ctx, #buf, buf)
+    until err ~= 0
+    if err == 0 then
+        err = laxjson.lax_json_eof(ctx)
     end
     f:close()
-    return true
+    if err == 0 then
+        return true
+    end
+    return false, ctx.line, ctx.column, ffi_str(laxjson.lax_json_str_err(err))
 end
 
 
