@@ -117,7 +117,7 @@ end
 -- module
 
 local _M = {
-    version = "0.3.2"
+    version = "0.3.3"
 }
 
 
