@@ -1,25 +1,19 @@
 local ffi = require "ffi"
-local laxjson = require "laxjson"
 local C = ffi.C
-local ffi_new = ffi.new
-local ffi_cast = ffi.cast
-local ffi_str = ffi.string
-local LaxJsonTypeArray = C.LaxJsonTypeArray
-local LaxJsonTypeProperty = C.LaxJsonTypeProperty
+local laxjson = require "laxjson"
 
 
 ffi.cdef[[
 typedef struct {
-    char id[16];
-    uint8_t array, count;
+    uint8_t on_arr, count;
 } mydata_t;
 ]]
 
 
-local userdata = ffi_new("mydata_t[1]")
+local userdata = ffi.new("mydata_t[1]")
 
 local function mydata (ctx)
-    return ffi_cast("mydata_t*", ctx.userdata)
+    return ffi.cast("mydata_t*", ctx.userdata)
 end
 
 
@@ -27,16 +21,16 @@ local laxj = laxjson.new {
     userdata = userdata,
     on_begin = function (ctx, jtype)
         local data = mydata(ctx)
-        if jtype == LaxJsonTypeArray then
-            mydata(ctx).array = 1
-        elseif data.array == 1 then
+        if jtype == C.LaxJsonTypeArray then
+            mydata(ctx).on_arr = 1
+        elseif data.on_arr == 1 then
             mydata(ctx).count = data.count + 1
         end
         return 0
     end,
     on_end = function (ctx, jtype)
-        if jtype == LaxJsonTypeArray then
-            mydata(ctx).array = 0
+        if jtype == C.LaxJsonTypeArray then
+            mydata(ctx).on_arr = 0
         end
         return 0
     end
