@@ -157,6 +157,7 @@ end
 function _M:free ()
     if self.ctx ~= NULL then
         laxjson.lax_json_destroy(self.ctx)
+        self.ctx = NULL
     end
 end
 
@@ -183,14 +184,14 @@ function _M:lax_json_eof ()
 end
 
 
-function _M:parse (fname, n)
+function _M:parse (fname, size)
     local err = C.LaxJsonErrorNone
-    local n = n or 2^13 -- 8K
+    local size = size or 2^13 -- 8K
     local ctx = self.ctx
     local f = assert(io_open(fname, "r"))
 
     repeat
-        local buf = f:read(n)
+        local buf = f:read(size)
         if not buf then break end
         err = laxjson.lax_json_feed(ctx, #buf, buf)
     until err ~= C.LaxJsonErrorNone
