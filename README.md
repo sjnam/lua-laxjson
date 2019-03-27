@@ -74,6 +74,7 @@ end
 ````lua
 local ffi = require "ffi"
 local laxjson = require "laxjson"
+local requests = require "resty.requests"
 
 local indent = 0
 
