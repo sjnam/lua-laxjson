@@ -125,7 +125,7 @@ end
 local chunk
 local ok, l, c,  err
 while true do
-    chunk, err = r:iter_content(2^13)
+    chunk, err = r:iter_content(2^13) -- reads by 8K bytes
     if not chunk then
         print(err)
         return
