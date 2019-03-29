@@ -1,3 +1,6 @@
+-- name: ctan_packages.lua
+-- run "resty ctan_packages.lua"
+
 local ffi = require "ffi"
 local laxjson = require "laxjson"
 local requests = require "resty.requests"
