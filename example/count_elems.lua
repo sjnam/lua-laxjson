@@ -32,7 +32,11 @@ local chunk
 local ok, l, c,  err
 while true do
    chunk, err = r:iter_content(2^13) -- reads by 8K bytes
-   if not chunk then
+   if not chunk then -- maybe eof
+      ok, l, c, err = laxj:lax_json_eof()
+      if not ok then
+         print(l, c, err)
+      end
       break
    end
    ok, l, c, err = laxj:lax_json_feed(#chunk, chunk)
@@ -43,12 +47,7 @@ while true do
 end
 
 if ok then
-   ok, l, c, err = laxj:lax_json_eof()
-   if not ok then
-      print(l, c, err)
-   end
+   print("CTAN has "..count.." packages.")
 end
-
-print("# of arrayelems: "..count)
 
 laxj:free()
