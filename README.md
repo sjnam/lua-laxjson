@@ -47,16 +47,20 @@ local chunk
 local ok, l, c,  err
 while true do
    chunk, err = r:iter_content(2^13) -- reads by 8K bytes
-   if not chunk then -- maybe eof
-      ok, l, c, err = laxj:lax_json_eof()
-      if not ok then
-         print(l, c, err)
-      end
+   if not chunk then
+       if err == "eof" then
+           ok, l, c, err = laxj:lax_json_eof()
+           if not ok then
+               print("Line: "..l.." Column: "..c..", "..err)
+           end
+       else
+           print(err)
+       end
       break
    end
    ok, l, c, err = laxj:lax_json_feed(#chunk, chunk)
    if not ok then
-      print(l, c, err)
+       print("Line: "..l.." Column: "..c..", "..err)
       break
    end
 end
