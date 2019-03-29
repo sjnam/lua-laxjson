@@ -1,28 +1,54 @@
+local ffi = require "ffi"
 local laxjson = require "laxjson"
-
+local requests = require "resty.requests"
 
 local on_arr, count = false, 0
 
 local laxj = laxjson.new {
-    on_begin = function (ctx, jtype)
-        if jtype == laxjson.LaxJsonTypeArray then
-            on_arr = true
-        elseif on_arr then
-            count = count + 1
-        end
-        return laxjson.LaxJsonErrorNone -- 0
-    end,
-    on_end = function (ctx, jtype)
-        if jtype == laxjson.LaxJsonTypeArray then
-            on_arr = false
-        end
-        return laxjson.LaxJsonErrorNone
-    end
+   on_begin = function (ctx, jtype)
+      if jtype == laxjson.LaxJsonTypeArray then
+         on_arr = true
+      elseif on_arr then
+         count = count + 1
+      end
+      return laxjson.LaxJsonErrorNone -- 0
+   end,
+   on_end = function (ctx, jtype)
+      if jtype == laxjson.LaxJsonTypeArray then
+         on_arr = false
+      end
+      return laxjson.LaxJsonErrorNone
+   end
 }
 
-local ok, l, col, err = laxj:parse("array.json")
-if not ok then
-    print("Line "..l..", column "..col..": "..err)
-else
-    print("# of arrayelems: "..count)
+local url = "https://ctan.org/json/2.0/packages"
+local r, err = requests.get(url)
+if not r then
+   print(err)
+   return
 end
+
+local chunk
+local ok, l, c,  err
+while true do
+   chunk, err = r:iter_content(2^13) -- reads by 8K bytes
+   if not chunk then
+      break
+   end
+   ok, l, c, err = laxj:lax_json_feed(#chunk, chunk)
+   if not ok then
+      print(l, c, err)
+      break
+   end
+end
+
+if ok then
+   ok, l, c, err = laxj:lax_json_eof()
+   if not ok then
+      print(l, c, err)
+   end
+end
+
+print("# of arrayelems: "..count)
+
+laxj:free()
