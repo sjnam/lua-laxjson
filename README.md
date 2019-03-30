@@ -1,4 +1,4 @@
-lua-laxjson
+luajit-laxjson
 ====
 Lua binding to [liblaxjson](https://github.com/andrewrk/liblaxjson)
 for LuaJIT using FFI.
@@ -74,7 +74,7 @@ laxj:free()
 
 Installation
 ============
-To install `lua-laxjson` you need to install
+To install `luajit-laxjson` you need to install
 [liblaxjson](https://github.com/andrewrk/liblaxjson#installation)
 with shared libraries firtst.
 Then you can install it by placing `laxjson.lua` to your lua library path.
