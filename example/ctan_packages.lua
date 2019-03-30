@@ -14,13 +14,13 @@ local laxj = laxjson.new {
         elseif on_arr then
             count = count + 1
         end
-        return laxjson.LaxJsonErrorNone -- 0
+        return 0
     end,
     on_end = function (ctx, jtype)
         if jtype == laxjson.LaxJsonTypeArray then
             on_arr = false
         end
-        return laxjson.LaxJsonErrorNone
+        return 0
     end
 }
 
@@ -32,7 +32,7 @@ if not r then
 end
 
 local chunk
-local ok, l, c,  err
+local ok, l, c, err
 while true do
     chunk, err = r:iter_content(2^13) -- reads by 8K bytes
     if not chunk then

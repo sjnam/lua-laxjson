@@ -91,21 +91,16 @@ const char *lax_json_str_err(enum LaxJsonError err);
 ]]
 
 
--- on_string callback
-local function on_string (ctx, jtype, value, length)
-    return C.LaxJsonErrorNone
-end
-
--- on_{number, primitive, begin, end} callbacks
-local function default_cb (ctx, x)
-    return C.LaxJsonErrorNone
+-- laxjson callbacks
+local function default_cb (...)
+    return 0
 end
 
 
 -- module
 
 local _M = {
-    version = "0.3.4",
+    version = "0.3.5",
     LaxJsonTypeString = C.LaxJsonTypeString,
     LaxJsonTypeProperty = C.LaxJsonTypeProperty,
     LaxJsonTypeNumber = C.LaxJsonTypeNumber,
@@ -114,7 +109,6 @@ local _M = {
     LaxJsonTypeTrue = C.LaxJsonTypeTrue,
     LaxJsonTypeFalse = C.LaxJsonTypeFalse,
     LaxJsonTypeNull = C.LaxJsonTypeNull,
-    LaxJsonErrorNone = C.LaxJsonErrorNone
 }
 
 
@@ -125,7 +119,7 @@ function _M.new (o)
     local o = o or {}
     local ctx = laxjson.lax_json_create()
     ctx['userdata'] = o.userdata or NULL
-    ctx['string'] = o.on_string or on_string
+    ctx['string'] = o.on_string or default_cb
     ctx['number'] = o.on_number or default_cb
     ctx['primitive'] = o.on_primitive or default_cb
     ctx['begin'] = o.on_begin or default_cb
@@ -142,11 +136,6 @@ function _M:free ()
 end
 
 
-local function error_none (err)
-    return err == C.LaxJsonErrorNone
-end
-
-
 local function str_err (err)
     return ffi_str(laxjson.lax_json_str_err(err))
 end
@@ -155,7 +144,7 @@ end
 function _M:lax_json_feed (size, data)
     local ctx = self.ctx
     local err = laxjson.lax_json_feed(ctx, size, data)
-    if not error_none(err) then
+    if err ~= 0 then
         return false, ctx.line, ctx.column, str_err(err)
     end
     return true
@@ -165,7 +154,7 @@ end
 function _M:lax_json_eof ()
     local ctx = self.ctx
     local err = laxjson.lax_json_eof(ctx)
-    if not error_none(err) then
+    if err ~= 0 then
         return false, ctx.line, ctx.column, str_err(err)
     end
     return true
@@ -173,7 +162,7 @@ end
 
 
 function _M:parse (fname, size)
-    local err = C.LaxJsonErrorNone
+    local err = 0
     local size = size or 2^13 -- 8K
     local ctx = self.ctx
     local f = assert(io_open(fname, "r"))
@@ -181,17 +170,14 @@ function _M:parse (fname, size)
         local buf = f:read(size)
         if not buf then break end
         err = laxjson.lax_json_feed(ctx, #buf, buf)
-    until not error_none(err)
-    if error_none(err) then
+    until err ~= 0
+    if err == 0 then
         err = laxjson.lax_json_eof(ctx)
     end
     f:close()
     local line, column = ctx.line, ctx.column
     self:free()
-    if error_none(err) then
-        return true
-    end
-    return false, line, column, str_err(err)
+    return err == 0, line, column, str_err(err)
 end
 
 
